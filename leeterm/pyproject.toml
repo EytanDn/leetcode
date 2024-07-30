@@ -1,0 +1,288 @@
+[build-system]
+requires = ["setuptools", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "leeterm"
+version = "0.0.1"
+description = "leetcode terminal interface"
+authors = [
+    { name = "Eytan Dahan", email = "EytanDn@gmail.com" }
+    ]
+requires-python = ">=3.10"
+dependencies = [
+    "python-leetcode",
+]
+
+[project.scripts]
+leeterm = "leeterm.cli:main"
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.4.3",
+    "pytest-cov>=4.1.0",
+    "pytest-html>=4.1.1",
+    "mypy>=1.7.1",
+    "mypy-extensions>=1.0.0",
+    "black>=22.3",
+    "ruff>=0.1.5",
+    "pylint>=3.0.0",
+    "coverage>=7.3.2",
+    "coverage-badge>=1.1.0",
+    "build>=1.0.0",
+    "twine>=4.0.0",
+    "poethepoet>=0.24.4",
+    "pre-commit>=2.15.0",
+    "commitizen>=3.21.0",
+]
+
+
+
+[tool.black]
+# https://github.com/psf/black
+target-version = ["py310"]
+line-length = 88
+color = true
+exclude = '''
+/(
+    \.git
+    | \.hg
+    | \.mypy_cache
+    | \.tox
+    | \.venv
+    | _build
+    | buck-out
+    | build
+    | dist
+    | env
+    | venv
+)/
+'''
+
+[tool.isort]
+# https://github.com/timothycrosley/isort/
+py_version = 39
+line_length = 88
+known_typing = [
+    "typing",
+    "types",
+    "typing_extensions",
+    "mypy",
+    "mypy_extensions",
+]
+sections = [
+    "FUTURE",
+    "TYPING",
+    "STDLIB",
+    "THIRDPARTY",
+    "FIRSTPARTY",
+    "LOCALFOLDER",
+]
+include_trailing_comma = true
+multi_line_output = 3
+indent = 4
+color_output = true
+lines_after_imports = 2
+
+[tool.mypy]
+# https://mypy.readthedocs.io/en/latest/config_file.html#using-a-pyproject-toml-file
+mypy_path = "src"
+pretty = true
+show_traceback = true
+color_output = true
+allow_redefinition = false
+check_untyped_defs = true
+disallow_any_generics = true
+disallow_incomplete_defs = true
+ignore_missing_imports = true
+implicit_reexport = false
+no_implicit_optional = true
+show_column_numbers = true
+show_error_codes = true
+show_error_context = true
+strict_equality = true
+strict_optional = true
+warn_no_return = true
+warn_redundant_casts = true
+warn_return_any = true
+warn_unreachable = true
+warn_unused_configs = true
+warn_unused_ignores = true
+exclude = ["tests/*", "docs/*", "notebooks/*"]
+
+
+[tool.ruff]
+extend-exclude = [
+    "docs/*",
+    # External to the project's coding standards
+    "tests/**/fixtures/*",
+]
+fix = true
+line-length = 88
+src = ["src"]
+
+[tool.ruff.lint]
+unfixable = [
+    "ERA", # do not autoremove commented out code
+]
+extend-select = [
+    "B",   # flake8-bugbear
+    "C4",  # flake8-comprehensions
+    "ERA", # flake8-eradicate/eradicate
+    "I",   # isort
+    "N",   # pep8-naming
+    "PIE", # flake8-pie
+    "PGH", # pygrep
+    "RUF", # ruff checks
+    "SIM", # flake8-simplify
+    "TCH", # flake8-type-checking
+    "TID", # flake8-tidy-imports
+    "UP",  # pyupgrade
+]
+ignore = [
+    "B904", # use 'raise ... from err'
+    "B905", # use explicit 'strict=' parameter with 'zip()'
+    "N818", #  Exception name should be named with an Error suffix
+    "UP006",
+    "UP035",
+    "PGH003", # use specific rule code
+    "UP007", # `X | Y` for type annotations
+]
+
+
+[tool.ruff.lint.flake8-tidy-imports]
+ban-relative-imports = "parents"
+
+[tool.ruff.lint.isort]
+force-single-line = false
+lines-between-types = 1
+lines-after-imports = 2
+
+[tool.pytest.ini_options]
+# https://docs.pytest.org/en/6.2.x/customize.html#pyproject-toml
+pythonpath = ["src"]
+# Directories that are not visited by pytest collector:
+norecursedirs = [
+    "hooks",
+    "*.egg",
+    ".eggs",
+    "dist",
+    "build",
+    "docs",
+    ".tox",
+    ".git",
+    "__pycache__",
+]
+doctest_optionflags = [
+    "NUMBER",
+    "NORMALIZE_WHITESPACE",
+    "IGNORE_EXCEPTION_DETAIL",
+]
+
+# Extra options:
+addopts = [
+    "--strict-markers",
+    "--tb=short",
+]
+
+[tool.commitizen]
+name = "cz_conventional_commits"
+tag_format = "$version"
+version_scheme = "pep440"
+version_provider = "pep621"
+update_changelog_on_bump = true
+major_version_zero = true
+
+[tool.coverage.run]
+source = ["src*"]
+omit = ["tests/*"]
+branch = true
+
+[tool.coverage.report]
+exclude_lines = [
+    "pragma: no cover",
+    "def __repr__",
+    "def __str__",
+    "if self.debug",
+    "if settings.DEBUG",
+    "if TYPE_CHECKING",
+]
+fail_under = 95
+show_missing = true
+
+
+[tool.poe.tasks]
+_clean_docs.script = "shutil:rmtree('docs/_build', ignore_errors=1)"
+    [tool.poe.tasks.format]
+    help = "Run all formatters"
+    sequence = ["format-isort", "format-ruff", "format-black"]
+
+    [tool.poe.tasks.format-black]
+    help = "Run black formatter"
+    cmd = "black ."
+
+    [tool.poe.tasks.format-isort]
+    help = "Run isort formatter"
+    cmd = "isort ."
+
+    [tool.poe.tasks.format-ruff]
+    help = "Run ruff formatter"
+    cmd = "ruff check src/ --fix-only"
+
+    [tool.poe.tasks.clean]
+    help = "Remove generated files"
+    cmd  = """
+    rm -rf .coverage
+            **/.mypy_cache
+            **/.pytest_cache
+            ./**/__pycache__
+            dist
+            htmlcov
+            ./docs/_build
+            ./tests/temp
+    """
+    [tool.poe.tasks.test]
+    help = "Run all tests"
+    sequence = ["pytest", "mypy"]
+    ignore_fail = "return_non_zero"
+
+    [tool.poe.tasks.mypy]
+    help = "Run mypy static type checker"
+    cmd = "mypy src"
+
+    [tool.poe.tasks.pytest]
+    help = "Run pytest"
+    cmd = "pytest -x" # add -cov=src to get coverage report
+
+    [tool.poe.tasks.test-docs]
+    help = "Run documentation tests"
+    cmd = "pytest --doctest-modules --doctest-continue-on-failure"
+
+    [tool.poe.tasks.lint]
+    help = "Run all linters"
+    sequence = ["lint-ruff", "lint-pylint"]
+    ignore_fail = "return_non_zero"
+
+    [tool.poe.tasks.lint-pylint]
+    help = "Run pylint linter"
+    cmd = "pylint src --fail-under=9.5"
+
+    [tool.poe.tasks.lint-ruff]
+    help = "Run ruff linter"
+    cmd = "ruff check src/"
+
+    [tool.poe.tasks.style]
+    help = "Validate code style"
+    cmd = "black . --check --diff"
+
+    [tool.poe.tasks.check]
+    help = "Run all checks"
+    sequence = ["style", "lint", "test"]
+
+    [tool.poe.tasks.build]
+    help = "Build package"
+    cmd = "python -m build -o dist/"
+
+    [tool.poe.tasks.publish]
+    help = "Publish package"
+    cmd = "python -m twine upload dist/*"
